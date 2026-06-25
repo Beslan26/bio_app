@@ -1,0 +1,6 @@
+class ComplaintRepository:
+    async def create(self, **data):
+        ...
+
+    async def get_by_patient_id(self, patient_id: int):
+        ...

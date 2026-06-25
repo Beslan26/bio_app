@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход для доктора</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900 min-h-screen flex items-center justify-center p-6">
+
+<div class="w-full max-w-md bg-gray-100 p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-6 text-center">
+        Вход для доктора
+    </h1>
+
+    <form class="space-y-4" action="/doctor/login" method="post">
+
+        <div>
+            <label class="block text-sm font-medium mb-1">
+                Номер лицензии
+            </label>
+            <input type="text"
+                   name="license_number"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+                   placeholder="123456789">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-1">
+                Пароль
+            </label>
+            <input type="password"
+                   name="password"
+                   required
+                   class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400">
+        </div>
+
+        <button type="submit"
+                class="w-full bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded">
+            Войти
+        </button>
+    </form>
+</div>
+
+</body>
+</html>

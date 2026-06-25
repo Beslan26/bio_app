@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900 min-h-screen">
+
+    <!-- Верхнее меню -->
+    <nav class="bg-blue-100 p-4">
+        <ul class="flex space-x-4">
+            <li><a href="/dashboard" class="font-semibold text-gray-900 hover:text-blue-600">Dashboard</a></li>
+            <li><a href="/profile" class="font-semibold text-gray-900 hover:text-blue-600">Profile</a></li>
+            <li><a href="/logout" class="font-semibold text-gray-900 hover:text-blue-600">Logout</a></li>
+        </ul>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="p-6">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>
