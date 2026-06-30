@@ -1,13 +1,10 @@
 import { FormEvent, useState } from 'react';
+import { Link } from 'react-router-dom'; // Изменили импорт под роутинг
 import axios from 'axios';
 import { loginUser } from '../api/auth';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
-
-interface LoginPageProps {
-  onSwitchToRegister: () => void;
-}
 
 function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -35,7 +32,8 @@ function getErrorMessage(error: unknown): string {
   return 'Не удалось выполнить вход. Попробуйте позже.';
 }
 
-export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
+// Убрали пропсы из аргументов функции
+export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
@@ -186,7 +184,7 @@ export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
                 {isLoading && (
                   <svg
                     className="h-5 w-5 animate-spin text-white"
-                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns="http://w3.org"
                     fill="none"
                     viewBox="0 0 24 24"
                   >
@@ -208,16 +206,25 @@ export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
                 {isLoading ? 'Вход...' : 'Войти'}
               </button>
 
-              <p className="text-center text-sm text-slate-500">
-                Нет аккаунта?{' '}
-                <button
-                  type="button"
-                  onClick={onSwitchToRegister}
-                  className="font-medium text-medical-600 hover:text-medical-700 hover:underline"
+              {/* Новый блок навигационных ссылок под формой */}
+              <div className="mt-6 flex flex-col items-center space-y-3 text-center">
+                <p className="text-sm text-slate-500">
+                  Нет аккаунта?{' '}
+                  <Link
+                    to="/register"
+                    className="font-medium text-medical-600 hover:text-medical-700 hover:underline"
+                  >
+                    Зарегистрироваться
+                  </Link>
+                </p>
+
+                <Link
+                  to="/doctor/login"
+                  className="text-sm font-medium text-slate-400 hover:text-medical-600 transition-colors underline decoration-dotted"
                 >
-                  Зарегистрироваться
-                </button>
-              </p>
+                  Вход для медицинского персонала
+                </Link>
+              </div>
             </form>
           )}
         </div>

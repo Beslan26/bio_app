@@ -39,6 +39,7 @@ export interface CreateDoctorRequest {
   specialty: string;
 }
 
+
 // 2. Описываем интерфейс ответа от бэкенда
 export interface CreateDoctorResponse {
   id: string | number; // Идентификатор, который присвоила база данных
@@ -47,6 +48,23 @@ export interface CreateDoctorResponse {
   sex: string;
   role?: string; // Если бэкенд возвращает роль пользователя
 }
+
+// 1. Схема запроса строго по DoctorLoginRequest
+export interface DoctorLoginRequest {
+  license_number: string;
+  password: string;
+}
+
+// 2. Схема ответа, которую возвращает return бэкенда
+export interface DoctorLoginResponse {
+  access_token: string;
+  user: {
+    id: number | string;
+    role: string; // Обычно 'doctor'
+  };
+}
+
+
 
 export async function registerUser(data: RegisterRequest): Promise<RegisterResponse> {
   const response = await apiClient.post<RegisterResponse>('/api/v1/auth/register', data);
@@ -64,5 +82,19 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
 export const createDoctor = async (data: CreateDoctorRequest): Promise<CreateDoctorResponse> => {
   // Наш Axios-клиент сам подставит базовый URL и токен админа из localStorage
   const response = await client.post<CreateDoctorResponse>('/api/v1/auth/admin/create-doctor', data);
+  return response.data;
+};
+
+
+// 3. Функция авторизации врача
+export const loginDoctor = async (data: DoctorLoginRequest): Promise<DoctorLoginResponse> => {
+  const response = await client.post<DoctorLoginResponse>('/api/v1/auth/doctor/login', data);
+
+  // Если у вас в client.ts уже настроено автоматическое сохранение токена при регистрации,
+  // убедитесь, что оно сработает и здесь. Если нет — сохраняем вручную:
+  if (response.data.access_token) {
+    localStorage.setItem('access_token', response.data.access_token);
+  }
+
   return response.data;
 };
