@@ -65,6 +65,37 @@ export interface DoctorLoginResponse {
 }
 
 
+// Схема запроса строго по PasswordRecoveryRequest
+export interface PasswordRecoveryRequest {
+  email: string;
+}
+
+// Схема ответа бэкенда
+export interface PasswordRecoveryResponse {
+  message: string;
+  reset_token?: string; // Приходит, только если пользователь существует в БД
+}
+
+// Интерфейс ответа эндпоинта /refresh
+export interface RefreshTokenResponse {
+  access_token: string;
+}
+
+// Функция для обновления токена
+export const refreshTokens = async (): Promise<RefreshTokenResponse> => {
+  // Передаем пустой объект {}, так как бэкенд умеет брать токен из кук,
+  // но Axios требует credentials для передачи кук
+  const response = await client.post<RefreshTokenResponse>('/api/v1/auth/refresh', {});
+
+  if (response.data.access_token) {
+    localStorage.setItem('access_token', response.data.access_token);
+  }
+
+  return response.data;
+};
+
+
+
 
 export async function registerUser(data: RegisterRequest): Promise<RegisterResponse> {
   const response = await apiClient.post<RegisterResponse>('/api/v1/auth/register', data);
@@ -96,5 +127,12 @@ export const loginDoctor = async (data: DoctorLoginRequest): Promise<DoctorLogin
     localStorage.setItem('access_token', response.data.access_token);
   }
 
+  return response.data;
+};
+
+
+// Функция для инициации сброса пароля
+export const requestPasswordRecovery = async (data: PasswordRecoveryRequest): Promise<PasswordRecoveryResponse> => {
+  const response = await apiClient.post<PasswordRecoveryResponse>('/api/v1/auth/password-recovery/request', data);
   return response.data;
 };

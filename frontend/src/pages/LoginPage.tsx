@@ -206,6 +206,12 @@ export function LoginPage() {
                 {isLoading ? 'Вход...' : 'Войти'}
               </button>
 
+              <div className="flex items-center justify-end text-sm">
+                  <Link to="/password-recovery/request" className="font-medium text-medical-600 hover:text-medical-700 hover:underline">
+                    Забыли пароль?
+                  </Link>
+               </div>
+
               {/* Новый блок навигационных ссылок под формой */}
               <div className="mt-6 flex flex-col items-center space-y-3 text-center">
                 <p className="text-sm text-slate-500">

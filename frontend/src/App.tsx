@@ -3,7 +3,8 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CreateDoctorPage } from './pages/CreateDoctorPage';
-import { DoctorLoginPage } from './pages/DoctorLoginPage'; // Импортируем страницу
+import { DoctorLoginPage } from './pages/DoctorLoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         {/* Новые роуты */}
         <Route path="/doctor/login" element={<DoctorLoginPage />} />
         <Route path="/admin/create-doctor" element={<CreateDoctorPage />} />
+        <Route path="/password-recovery/request" element={<ForgotPasswordPage />} />
       </Route>
     </Routes>
   );
