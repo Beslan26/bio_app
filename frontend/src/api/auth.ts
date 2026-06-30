@@ -87,6 +87,14 @@ export interface PasswordRecoveryConfirm {
   new_password: string;
 }
 
+export interface UserMeResponse {
+  id: number | string;
+  role: 'patient' | 'doctor' | 'admin'; // Роли из вашего UserRole.value
+  status: string;
+  last_login: string | null;
+  profile: any; // Сюда прилетят данные из PatientRepository или DoctorRepository
+}
+
 
 
 
@@ -150,5 +158,12 @@ export const requestPasswordRecovery = async (data: PasswordRecoveryRequest): Pr
 // Функция для подтверждения сброса и установки нового пароля
 export const confirmPasswordRecovery = async (data: PasswordRecoveryConfirm): Promise<{ message: string }> => {
   const response = await apiClient.post<{ message: string }>('/api/v1/auth/password-recovery/confirm', data);
+  return response.data;
+};
+
+
+// 2. Функция запроса данных о текущем пользователе
+export const getCurrentUser = async (): Promise<UserMeResponse> => {
+  const response = await apiClient.get<UserMeResponse>('/api/v1/auth/me');
   return response.data;
 };
