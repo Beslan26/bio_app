@@ -81,6 +81,17 @@ export interface RefreshTokenResponse {
   access_token: string;
 }
 
+// Схема запроса строго по PasswordRecoveryConfirm
+export interface PasswordRecoveryConfirm {
+  token: string;
+  new_password: string;
+}
+
+
+
+
+
+
 // Функция для обновления токена
 export const refreshTokens = async (): Promise<RefreshTokenResponse> => {
   // Передаем пустой объект {}, так как бэкенд умеет брать токен из кук,
@@ -93,8 +104,6 @@ export const refreshTokens = async (): Promise<RefreshTokenResponse> => {
 
   return response.data;
 };
-
-
 
 
 export async function registerUser(data: RegisterRequest): Promise<RegisterResponse> {
@@ -134,5 +143,12 @@ export const loginDoctor = async (data: DoctorLoginRequest): Promise<DoctorLogin
 // Функция для инициации сброса пароля
 export const requestPasswordRecovery = async (data: PasswordRecoveryRequest): Promise<PasswordRecoveryResponse> => {
   const response = await apiClient.post<PasswordRecoveryResponse>('/api/v1/auth/password-recovery/request', data);
+  return response.data;
+};
+
+
+// Функция для подтверждения сброса и установки нового пароля
+export const confirmPasswordRecovery = async (data: PasswordRecoveryConfirm): Promise<{ message: string }> => {
+  const response = await apiClient.post<{ message: string }>('/api/v1/auth/password-recovery/confirm', data);
   return response.data;
 };

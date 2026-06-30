@@ -5,6 +5,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { CreateDoctorPage } from './pages/CreateDoctorPage';
 import { DoctorLoginPage } from './pages/DoctorLoginPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/doctor/login" element={<DoctorLoginPage />} />
         <Route path="/admin/create-doctor" element={<CreateDoctorPage />} />
         <Route path="/password-recovery/request" element={<ForgotPasswordPage />} />
+        <Route path="/password-recovery/confirm" element={<ResetPasswordPage />} />
       </Route>
     </Routes>
   );
