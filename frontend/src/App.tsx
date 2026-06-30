@@ -10,6 +10,10 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { getCurrentUser, UserMeResponse } from './api/auth';
 import { getAccessToken } from './api/client';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { AdminVerifyDoctorsPage } from './pages/AdminVerifyDoctorsPage';
+import { AdminSpecializationsPage } from './pages/AdminSpecializationsPage';
+import { AdminConfigsPage } from './pages/AdminConfigsPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 function App() {
   const [user, setUser] = useState<UserMeResponse | null>(null);
@@ -73,6 +77,10 @@ function App() {
         <Route path="/admin/users" element={<AdminUsersPage />} />
         <Route path="/dashboard" element={<div>Личный кабинет пациента (В разработке)</div>} />
         <Route path="/doctor/dashboard" element={<div>Панель управления врача (В разработке)</div>} />
+        <Route path="/admin/doctors/pending" element={<AdminVerifyDoctorsPage />} />
+        <Route path="/admin/specializations" element={<AdminSpecializationsPage />} />
+        <Route path="/admin/system-configs" element={<AdminConfigsPage />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
       </Route>
     </Routes>
   );
