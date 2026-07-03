@@ -21,6 +21,13 @@ import { DoctorAppointmentsPage } from './pages/DoctorAppointmentsPage';
 import { DoctorPatientEhrPage } from './pages/DoctorPatientEhrPage';
 import { DoctorTasksPage } from './pages/DoctorTasksPage';
 import { DoctorChatPage } from './pages/DoctorChatPage';
+import { PatientDashboardPage } from './pages/PatientDashboardPage';
+import { PatientConsentsPage } from './pages/PatientConsentsPage';
+import { PatientSymptomsPage } from './pages/PatientSymptomsPage';
+import { PatientDocumentsPage } from './pages/PatientDocumentsPage';
+import { PatientTasksPage } from './pages/PatientTasksPage';
+import { PatientPreferencesPage } from './pages/PatientPreferencesPage';
+
 
 function App() {
   const [user, setUser] = useState<UserMeResponse | null>(null);
@@ -87,7 +94,12 @@ function App() {
         <Route path="/admin/system-configs" element={<AdminConfigsPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
 
-        <Route path="/dashboard" element={<div>Личный кабинет пациента (В разработке)</div>} />
+        <Route path="/dashboard" element={<PatientDashboardPage />} />
+        <Route path="/dashboard/consents" element={<PatientConsentsPage />} />
+        <Route path="/dashboard/symptoms" element={<PatientSymptomsPage />} />
+        <Route path="/dashboard/documents" element={<PatientDocumentsPage />} />
+        <Route path="/dashboard/tasks" element={<PatientTasksPage />} />
+        <Route path="/dashboard/preferences" element={<PatientPreferencesPage />} />
 
         <Route path="/doctor/dashboard" element={<DoctorDashboardPage />} />
         <Route path="/doctor/patients" element={<DoctorPatientsPage />} />
