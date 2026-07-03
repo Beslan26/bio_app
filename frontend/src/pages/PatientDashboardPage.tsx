@@ -4,28 +4,34 @@ import {
   updatePatientWorkspaceProfile,
   getDiagnosesTimeline,
   getHealthSnapshot,
+  getBasePatientProfile,       // Наш новый GET из patients.py
+  updateBasePatientProfile,    // Наш новый PUT из patients.py
   PatientProfileResponse,
   PatientProfileUpdateRequest,
   PatientTimelineDiagnosis,
-  HealthSnapshotResponse
+  HealthSnapshotResponse,
+  BasePatientProfileResponse
 } from '../api/patient';
 
 export const PatientDashboardPage: React.FC = () => {
   const [profile, setProfile] = useState<PatientProfileResponse | null>(null);
+  const [baseProfile, setBaseProfile] = useState<BasePatientProfileResponse | null>(null);
   const [timeline, setTimeline] = useState<PatientTimelineDiagnosis[]>([]);
   const [snapshot, setSnapshot] = useState<HealthSnapshotResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Режим редактирования анкеты
+  // Расширенный режим редактирования анкеты
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState<PatientProfileUpdateRequest>({
+  const [editForm, setEditForm] = useState<PatientProfileUpdateRequest & { height_cm?: string; weight_kg?: string }>({
     full_name: '',
     birth_date: '',
     gender: '',
     blood_type: '',
     contact_details: '',
     emergency_contact: '',
+    height_cm: '',
+    weight_kg: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -33,15 +39,17 @@ export const PatientDashboardPage: React.FC = () => {
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      // Параллельно загружаем анкету профиля, таймлайн диагнозов и снимок аналитики
-      const [profileData, timelineData, snapshotData] = await Promise.all([
+      // Параллельно загружаем ВСЕ ЧЕТЫРЕ эндпоинта бэкенда
+      const [profileData, timelineData, snapshotData, baseProfileData] = await Promise.all([
         getPatientWorkspaceProfile(),
         getDiagnosesTimeline(),
-        getHealthSnapshot()
+        getHealthSnapshot(),
+        getBasePatientProfile()
       ]);
 
       setProfile(profileData);
       setSnapshot(snapshotData);
+      setBaseProfile(baseProfileData);
 
       const sortedTimeline = timelineData.sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -59,14 +67,16 @@ export const PatientDashboardPage: React.FC = () => {
   }, []);
 
   const handleStartEdit = () => {
-    if (!profile) return;
+    if (!profile || !baseProfile) return;
     setEditForm({
       full_name: profile.full_name || '',
-      birth_date: profile.birth_date || '',
-      gender: profile.gender || '',
+      birth_date: profile.birth_date || baseProfile.birth_date || '',
+      gender: profile.gender || baseProfile.sex || '',
       blood_type: profile.blood_type || '',
       contact_details: profile.contact_details || '',
       emergency_contact: profile.emergency_contact || '',
+      height_cm: baseProfile.height_cm ? String(baseProfile.height_cm) : '',
+      weight_kg: baseProfile.weight_kg ? String(baseProfile.weight_kg) : '',
     });
     setSaveMessage(null);
     setIsEditing(true);
@@ -74,7 +84,7 @@ export const PatientDashboardPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value || null }));
+    setEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveSubmit = async (e: React.FormEvent) => {
@@ -83,16 +93,27 @@ export const PatientDashboardPage: React.FC = () => {
     setSaveMessage(null);
 
     try {
-      const updated = await updatePatientWorkspaceProfile({
-        full_name: editForm.full_name?.trim() || null,
-        birth_date: editForm.birth_date || null,
-        gender: editForm.gender || null,
-        blood_type: editForm.blood_type || null,
-        contact_details: editForm.contact_details?.trim() || null,
-        emergency_contact: editForm.emergency_contact?.trim() || null,
-      });
-      setProfile(updated);
-      setSaveMessage({ type: 'success', text: 'Данные профиля успешно сохранены в системе!' });
+      // Одновременно шлем PATCH в воркспейс и PUT в базовый профиль
+      const [updatedWorkspace, updatedBase] = await Promise.all([
+        updatePatientWorkspaceProfile({
+          full_name: editForm.full_name?.trim() || null,
+          birth_date: editForm.birth_date || null,
+          gender: editForm.gender || null,
+          blood_type: editForm.blood_type || null,
+          contact_details: editForm.contact_details?.trim() || null,
+          emergency_contact: editForm.emergency_contact?.trim() || null,
+        }),
+        updateBasePatientProfile({
+          birth_date: editForm.birth_date || undefined,
+          sex: editForm.gender || undefined,
+          height_cm: editForm.height_cm ? Number(editForm.height_cm) : null,
+          weight_kg: editForm.weight_kg ? Number(editForm.weight_kg) : null,
+        })
+      ]);
+
+      setProfile(updatedWorkspace);
+      setBaseProfile(updatedBase);
+      setSaveMessage({ type: 'success', text: 'Все медицинские и личные данные успешно сохранены!' });
       setIsEditing(false);
     } catch (err: any) {
       setSaveMessage({ type: 'error', text: err.response?.data?.detail || 'Не удалось обновить анкету' });
@@ -124,12 +145,10 @@ export const PatientDashboardPage: React.FC = () => {
       {saveMessage && (
         <div className={`p-4 rounded-xl text-sm font-medium border ${
           saveMessage.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'
-        }`}>
-          {saveMessage.text}
-        </div>
+        }`}>{saveMessage.text}</div>
       )}
 
-      {/* Шапка личного кабинета пациента */}
+      {/* Шапка */}
       <div className="bg-gradient-to-r from-medical-600 to-sky-700 rounded-2xl p-6 text-white shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -151,85 +170,104 @@ export const PatientDashboardPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSaveSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* ЛЕВАЯ КОЛОНКА: Маркеры здоровья + Виджет ИИ-Аналитики */}
+        {/* ЛЕВАЯ КОЛОНКА: Маркеры здоровья (с новыми полями Роста и Веса) */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 pb-1">Медицинские маркеры</h3>
+
             <div>
               <label className="block text-xs text-slate-400">Группа крови</label>
               {isEditing ? (
                 <input
                   type="text" name="blood_type" placeholder="Например: A(II) Rh+"
                   value={editForm.blood_type || ''} onChange={handleInputChange}
-                  className="mt-1 w-full text-sm rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
+                  className="mt-1 w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
                 />
               ) : (
-                <span className="text-lg font-bold text-rose-600 mt-0.5 block">{profile?.blood_type || 'Не указана'}</span>
+                <span className="text-base font-bold text-rose-600 block mt-0.5">{profile?.blood_type || 'Не указана'}</span>
               )}
             </div>
 
-            <div className="border-t border-slate-100 pt-3">
+            <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-2">
+              <div>
+                <label className="block text-xs text-slate-400">Рост (см)</label>
+                {isEditing ? (
+                  <input
+                    type="number" name="height_cm" placeholder="175"
+                    value={editForm.height_cm || ''} onChange={handleInputChange}
+                    className="mt-1 w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-slate-800 block mt-0.5">{baseProfile?.height_cm ? `${baseProfile.height_cm} см` : '—'}</span>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400">Вес (кг)</label>
+                {isEditing ? (
+                  <input
+                    type="number" step="0.1" name="weight_kg" placeholder="70.5"
+                    value={editForm.weight_kg || ''} onChange={handleInputChange}
+                    className="mt-1 w-full text-xs rounded-lg border border-slate-300 px-2.5 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-slate-800 block mt-0.5">{baseProfile?.weight_kg ? `${baseProfile.weight_kg} кг` : '—'}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 pt-2">
               <label className="block text-xs text-slate-400">Биологический пол</label>
               {isEditing ? (
                 <select
                   name="gender" value={editForm.gender || ''} onChange={handleInputChange}
-                  className="mt-1 w-full text-sm rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
+                  className="mt-1 w-full text-xs rounded-lg border border-slate-300 px-2 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
                 >
                   <option value="">Не указан</option>
                   <option value="male">Мужской</option>
                   <option value="female">Женский</option>
                 </select>
               ) : (
-                <span className="text-sm font-semibold text-slate-800 mt-0.5 block uppercase">
+                <span className="text-sm font-semibold text-slate-800 block uppercase mt-0.5">
                   {profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : '—'}
                 </span>
               )}
             </div>
 
-            <div className="border-t border-slate-100 pt-3">
+            <div className="border-t border-slate-100 pt-2">
               <label className="block text-xs text-slate-400">Дата рождения</label>
               {isEditing ? (
                 <input
                   type="date" name="birth_date" value={editForm.birth_date || ''} onChange={handleInputChange}
-                  className="mt-1 w-full text-sm rounded-lg border border-slate-300 px-2 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
+                  className="mt-1 w-full text-xs rounded-lg border border-slate-300 px-2 py-1.5 bg-white text-slate-800 outline-none focus:border-medical-500"
                 />
               ) : (
-                <span className="text-sm font-medium text-slate-800 mt-0.5 block">
+                <span className="text-sm font-medium text-slate-800 block mt-0.5">
                   {profile?.birth_date ? new Date(profile.birth_date).toLocaleDateString('ru-RU') : '—'}
                 </span>
               )}
             </div>
           </div>
 
-          {/* ИНТЕРАКТИВНЫЙ ВИДЖЕТ: АНАЛИТИКА ЗДОРОВЬЯ ИЗ /health/snapshot */}
+          {/* Виджет ИИ-Аналитики */}
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
             <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
-              <svg className="h-4 w-4 text-medical-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.488 9H15V3.512A9.025 9.003 0 0120.488 9z" />
-              </svg>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Аналитика показателей</h3>
             </div>
-
             {!snapshot || Object.keys(snapshot.key_metrics_json).length === 0 ? (
-              <p className="text-[11px] text-slate-400 italic leading-relaxed">Данные для расчета трендов здоровья еще не собраны. Продолжайте заполнять ежедневный Дневник наблюдения.</p>
+              <p className="text-[11px] text-slate-400 italic leading-relaxed">Данные для расчета трендов здоровья еще не собраны.</p>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {Object.entries(snapshot.key_metrics_json).map(([key, val]) => (
-                  <div key={key} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 flex items-center justify-between gap-3">
+                  <div key={key} className="bg-slate-50 border border-slate-100 rounded-lg p-2 flex items-center justify-between gap-3">
                     <span className="text-xs text-slate-500 font-medium capitalize">{key.replace(/_/g, ' ')}</span>
-                    <span className="text-sm font-bold text-medical-700 text-right">{String(val)}</span>
+                    <span className="text-xs font-bold text-medical-700 text-right">{String(val)}</span>
                   </div>
                 ))}
-                <div className="pt-1.5 border-t border-dashed border-slate-100 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                  <span>Обновлено:</span>
-                  <span>{new Date(snapshot.generated_at).toLocaleDateString('ru-RU')}</span>
-                </div>
               </div>
             )}
           </div>
         </div>
-        {/* ПРАВАЯ КОЛОНКА: Контактные данные + ТАЙМЛАЙН ДИАГНОЗОВ */}
+        {/* Правая колонка: Контакты + Таймлайн */}
         <div className="lg:col-span-2 space-y-4">
           {/* Блок контактов */}
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
@@ -240,7 +278,7 @@ export const PatientDashboardPage: React.FC = () => {
                 {isEditing ? (
                   <input
                     type="text" name="full_name" value={editForm.full_name || ''} onChange={handleInputChange}
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white outline-none focus:border-medical-500"
+                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white text-slate-800 outline-none focus:border-medical-500"
                   />
                 ) : (
                   <p className="text-sm font-semibold text-slate-900">{profile?.full_name || '—'}</p>
@@ -274,16 +312,14 @@ export const PatientDashboardPage: React.FC = () => {
 
             {isEditing && (
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setIsEditing(false)} className="px-5 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl">Отмена</button>
-                <button type="submit" disabled={isSaving} className="px-5 py-1.5 text-xs font-semibold text-white bg-medical-600 rounded-xl shadow-sm">{isSaving ? 'Сохранение...' : 'Сохранить'}</button>
+                <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl">Отмена</button>
+                <button type="submit" disabled={isSaving} className="px-4 py-1.5 text-xs font-semibold text-white bg-medical-600 rounded-xl shadow-sm">{isSaving ? 'Сохранение...' : 'Сохранить'}</button>
               </div>
             )}
           </div>
 
-          {/* ЖИВОЙ ТАЙМЛАЙН ВРАЧЕБНЫХ ДИАГНОЗОВ */}
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
             <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2">Моя история болезней (Таймлайн)</h2>
-
             {timeline.length === 0 ? (
               <p className="text-xs text-slate-400 italic text-center py-4">Врачебных записей и диагнозов пока нет.</p>
             ) : (
@@ -301,15 +337,8 @@ export const PatientDashboardPage: React.FC = () => {
                       </div>
                       <span>📅 {new Date(diag.created_at).toLocaleDateString('ru-RU')}</span>
                     </div>
-
                     <h4 className="text-sm font-bold text-slate-900">{diag.diagnosis_text}</h4>
-
-                    {diag.consultation_notes && (
-                      <p className="text-xs text-slate-500 italic bg-white p-2 rounded border border-slate-100">
-                        "{diag.consultation_notes}"
-                      </p>
-                    )}
-
+                    {diag.consultation_notes && <p className="text-xs text-slate-500 italic bg-white p-2 rounded border border-slate-100">"{diag.consultation_notes}"</p>}
                     {diag.recommendation && (
                       <div className="text-xs text-medical-800 bg-medical-50/50 p-2 rounded border border-medical-100/50">
                         <span className="font-bold text-medical-900 block mb-0.5">Рекомендации врача:</span>

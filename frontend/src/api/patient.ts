@@ -255,3 +255,32 @@ export const requestDeactivation = async (): Promise<{ message: string }> => {
 };
 
 
+// --- СИСТЕМНЫЙ CRUD ДЛЯ ВРАЧЕЙ И АДМИНИСТРАТОРОВ (из patients.py) ---
+
+// 1. Интерфейс ответа строго по базовому PatientProfileResponse
+export interface BasePatientProfileResponse {
+  birth_date: string; // YYYY-MM-DD
+  sex: string;
+  height_cm: number | null;
+  weight_kg: number | null;
+}
+
+// 2. Интерфейс запроса строго по PatientProfileUpdate
+export interface BasePatientProfileUpdate {
+  birth_date?: string | null;
+  sex?: string | null;
+  height_cm?: number | null;
+  weight_kg?: number | null;
+}
+
+// 3. GET запрос получения базового физического профиля
+export const getBasePatientProfile = async (): Promise<BasePatientProfileResponse> => {
+  const response = await apiClient.get<BasePatientProfileResponse>('/api/patient/profile');
+  return response.data;
+};
+
+// 4. PUT запрос на обновление базового физического профиля
+export const updateBasePatientProfile = async (payload: BasePatientProfileUpdate): Promise<BasePatientProfileResponse> => {
+  const response = await apiClient.put<BasePatientProfileResponse>('/api/patient/profile', payload);
+  return response.data;
+}; // <-- Убедитесь, что эта функция называется именно updateBasePatientProfile и перед ней стоит export

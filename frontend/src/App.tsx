@@ -72,7 +72,7 @@ function App() {
 
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route element={<Layout userRole={user?.role} />}>
         {/* Если пользователь авторизован, при заходе на корень кидаем его дальше, если нет — на логин */}
         <Route
           path="/"
