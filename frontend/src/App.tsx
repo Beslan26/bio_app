@@ -14,6 +14,13 @@ import { AdminVerifyDoctorsPage } from './pages/AdminVerifyDoctorsPage';
 import { AdminSpecializationsPage } from './pages/AdminSpecializationsPage';
 import { AdminConfigsPage } from './pages/AdminConfigsPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { DoctorDashboardPage } from './pages/DoctorDashboardPage';
+import { DoctorPatientsPage } from './pages/DoctorPatientsPage';
+import { DoctorComplaintsInboxPage } from './pages/DoctorComplaintsInboxPage';
+import { DoctorAppointmentsPage } from './pages/DoctorAppointmentsPage';
+import { DoctorPatientEhrPage } from './pages/DoctorPatientEhrPage';
+import { DoctorTasksPage } from './pages/DoctorTasksPage';
+import { DoctorChatPage } from './pages/DoctorChatPage';
 
 function App() {
   const [user, setUser] = useState<UserMeResponse | null>(null);
@@ -75,12 +82,20 @@ function App() {
         {/* Защищенные роуты (в будущем здесь будут полноценные дашборды) */}
         <Route path="/admin/create-doctor" element={<CreateDoctorPage />} />
         <Route path="/admin/users" element={<AdminUsersPage />} />
-        <Route path="/dashboard" element={<div>Личный кабинет пациента (В разработке)</div>} />
-        <Route path="/doctor/dashboard" element={<div>Панель управления врача (В разработке)</div>} />
         <Route path="/admin/doctors/pending" element={<AdminVerifyDoctorsPage />} />
         <Route path="/admin/specializations" element={<AdminSpecializationsPage />} />
         <Route path="/admin/system-configs" element={<AdminConfigsPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+
+        <Route path="/dashboard" element={<div>Личный кабинет пациента (В разработке)</div>} />
+
+        <Route path="/doctor/dashboard" element={<DoctorDashboardPage />} />
+        <Route path="/doctor/patients" element={<DoctorPatientsPage />} />
+        <Route path="/doctor/complaints/inbox" element={<DoctorComplaintsInboxPage />} />
+        <Route path="/doctor/appointments" element={<DoctorAppointmentsPage />} />
+        <Route path="/doctor/patients/:patientId/ehr" element={<DoctorPatientEhrPage />} />
+        <Route path="/doctor/tasks" element={<DoctorTasksPage />} />
+        <Route path="/doctor/chat" element={<DoctorChatPage />} />
       </Route>
     </Routes>
   );

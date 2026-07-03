@@ -136,16 +136,25 @@ export const createDoctor = async (data: CreateDoctorRequest): Promise<CreateDoc
 
 // 3. Функция авторизации врача
 export const loginDoctor = async (data: DoctorLoginRequest): Promise<DoctorLoginResponse> => {
-  const response = await client.post<DoctorLoginResponse>('/api/v1/auth/doctor/login', data);
+  // Явно формируем объект, чтобы исключить опечатки в полях
+  const requestBody = {
+    license_number: data.license_number,
+    password: data.password
+  };
 
-  // Если у вас в client.ts уже настроено автоматическое сохранение токена при регистрации,
-  // убедитесь, что оно сработает и здесь. Если нет — сохраняем вручную:
+  // Передаем requestBody в POST запрос
+  const response = await apiClient.post<DoctorLoginResponse>(
+    '/api/v1/auth/doctor/login',
+    requestBody
+  );
+
   if (response.data.access_token) {
     localStorage.setItem('access_token', response.data.access_token);
   }
 
   return response.data;
 };
+
 
 
 // Функция для инициации сброса пароля
