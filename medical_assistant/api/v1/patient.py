@@ -11,6 +11,13 @@ from medical_assistant.models.user.user import UserRole
 
 router = APIRouter(prefix="/patient", tags=["patient"])
 
+# НАПОМИНАЛКА ДЛЯ ФРОНТЕНДА:
+# Этот файл (префикс /patient) — системный справочник общего назначения (CRUD).
+# Используется ИСКЛЮЧИТЕЛЬНО Врачами или Администраторами для быстрого поиска
+# или перезаписи (PUT) базовых анкетных данных пациента по его user_id.
+#
+# НЕ ИСПОЛЬЗОВАТЬ для Личного Кабинета самого пациента!
+# Для личного кабинета пациента используется 'patients_workspace.py' (/patient/workspace).
 
 @router.get("/profile", response_model=PatientProfileResponse)
 async def get_patient_profile(
