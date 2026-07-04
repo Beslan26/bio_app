@@ -47,6 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ userRole }) => {
       { path: '/admin/doctors/pending', label: 'Верификация врачей', icon: '🩺' },
       { path: '/admin/specializations', label: 'Специализации', icon: '📚' },
       { path: '/admin/system-configs', label: 'Системные настройки', icon: '⚙️' },
+      { path: '/global-search', label: 'Глобальный поиск', icon: '🔍' }
     ],
     doctor: [
       { path: '/doctor/dashboard', label: 'Мой профиль', icon: '👨‍⚕️' },
@@ -55,6 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ userRole }) => {
       { path: '/doctor/appointments', label: 'Календарь приемов', icon: '📅' },
       { path: '/doctor/tasks', label: 'Задачи наблюдения', icon: '📝' },
       { path: '/doctor/chat', label: 'Телемед-чат', icon: '💬' },
+      { path: '/global-search', label: 'Глобальный поиск', icon: '🔍' }
     ],
     patient: [
       { path: '/dashboard', label: 'Моя медкарта', icon: '👤' },

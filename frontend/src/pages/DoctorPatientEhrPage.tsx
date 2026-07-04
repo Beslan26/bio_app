@@ -156,6 +156,11 @@ export const DoctorPatientEhrPage: React.FC = () => {
             </div>
           )}
         </div>
+        {/* Врач сразу видит графики показателей пациента в его цифровой карте */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-4">
+          <PatientAnalyticsCharts patientId={numericPatientId} />
+        </div>
+
 
         {/* ПРАВАЯ КОЛОНКА: ФОРМА ОСМОТРА И ЗАПОЛНЕНИЯ КАРТЫ */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 lg:col-span-1">

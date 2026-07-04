@@ -284,3 +284,51 @@ export const updateBasePatientProfile = async (payload: BasePatientProfileUpdate
   const response = await apiClient.put<BasePatientProfileResponse>('/api/patient/profile', payload);
   return response.data;
 }; // <-- Убедитесь, что эта функция называется именно updateBasePatientProfile и перед ней стоит export
+
+
+// --- МОДУЛЬ ЖАЛОБ И СИМПТОМОВ (из patient_complaints.py) ---
+
+// 1. Интерфейс ответа строго по модели ComplaintResponse
+export interface PatientComplaintResponse {
+  id: number;
+  source: string; // 'text' | 'voice'
+  raw_text: string;
+  extracted_facts: string[] | null; // Факты, извлеченные ИИ
+  created_at: string; // ISO datetime строка
+}
+
+// 2. Функция отправки текстовой жалобы в роутер patient/complaints/text
+export const createTextComplaint = async (text: string): Promise<PatientComplaintResponse> => {
+  const response = await apiClient.post<PatientComplaintResponse>('/api/v1/patient/complaints/text', {
+    text: text,
+  });
+  return response.data;
+};
+
+
+// 1. Отправить голосовую жалобу в роутер patient_complaints
+export const createVoiceComplaint = async (audioBlob: Blob): Promise<PatientComplaintResponse> => {
+  const formData = new FormData();
+  // Передаем файл под именем 'file', как требует FastAPI (file: UploadFile = File(...))
+  formData.append('file', audioBlob, 'complaint.wav');
+
+  const response = await apiClient.post<PatientComplaintResponse>('/api/v1/patient/complaints/voice', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+// 2. Получить список всех жалоб из этой таблицы
+export const getPatientComplaintsList = async (): Promise<PatientComplaintResponse[]> => {
+  const response = await apiClient.get<PatientComplaintResponse[]>('/api/v1/patient/complaints');
+  return response.data;
+};
+
+
+// Функция получения агрегированных данных для графиков PHR пациента (из infrastructure.py)
+export const getPatientAnalytics = async (patientId: number): Promise<Record<string, any>> => {
+  const response = await apiClient.get<Record<string, any>>(`/api/v1/infrastructure/analytics/patient/${patientId}`);
+  return response.data;
+};

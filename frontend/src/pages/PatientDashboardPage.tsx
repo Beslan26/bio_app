@@ -267,6 +267,12 @@ export const PatientDashboardPage: React.FC = () => {
             )}
           </div>
         </div>
+        {/* Вставляем графики PHR в подвал левой колонки личного кабинета пациента */}
+        {profile?.id && (
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <PatientAnalyticsCharts patientId={profile.id} />
+          </div>
+        )}
         {/* Правая колонка: Контакты + Таймлайн */}
         <div className="lg:col-span-2 space-y-4">
           {/* Блок контактов */}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { listPatientDocuments, addPatientDocument, PatientDocumentResponse, PatientDocumentCreateRequest } from '../api/patient';
+import { uploadMedicalFile } from '../api/infrastructure';
 
 export const PatientDocumentsPage: React.FC = () => {
   const [documents, setDocuments] = useState<PatientDocumentResponse[]>([]);
@@ -14,6 +15,7 @@ export const PatientDocumentsPage: React.FC = () => {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formMessage, setFormMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchDocuments = async () => {
@@ -40,6 +42,27 @@ export const PatientDocumentsPage: React.FC = () => {
       ...prev,
       [name]: value || null,
     }));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setFormMessage(null);
+    try {
+      const uploadResult = await uploadMedicalFile(file);
+      setFormData((prev) => ({
+        ...prev,
+        file_url: uploadResult.download_url,
+        title: prev.title || file.name.split('.')[0],
+      }));
+      setFormMessage({ type: 'success', text: `Файл "${file.name}" успешно загружен на сервер!` });
+    } catch (err: any) {
+      setFormMessage({ type: 'error', text: err.response?.data?.detail || 'Не удалось загрузить файл на сервер.' });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,13 +142,53 @@ export const PatientDocumentsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Ссылка на файл (URL) *</label>
-              <input
-                type="url" name="file_url" required placeholder="https://storage.com"
-                value={formData.file_url} onChange={handleInputChange}
-                className="w-full text-sm rounded-lg border border-slate-300 px-3 py-1.5 bg-white outline-none focus:border-medical-500"
-              />
+              <label className="block text-xs font-semibold text-slate-600 mb-1">Медицинский файл *</label>
+
+              {formData.file_url ? (
+                // Если файл уже успешно залит, показываем зеленую плашку с возможностью перевыбрать
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-emerald-600">✓</span>
+                    <p className="text-slate-700 font-medium truncate">Файл готов к отправке в архив</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, file_url: '' }))}
+                    className="text-rose-600 hover:text-rose-800 font-bold ml-2 shrink-0"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              ) : (
+                // Если файл еще не выбран, показываем красивую область для клика
+                <label className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition ${
+                  isUploading ? 'border-teal-300 bg-teal-50/10 cursor-not-allowed' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-50 hover:border-teal-500'
+                }`}>
+                  <input
+                    type="file"
+                    disabled={isUploading}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    required={!formData.file_url}
+                  />
+                  {isUploading ? (
+                    <div className="space-y-1">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-600 border-t-transparent mx-auto" />
+                      <p className="text-[11px] text-teal-700 font-medium">Шифрование и загрузка в PHR...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <span className="text-lg">📎</span>
+                      <p className="text-xs font-semibold text-slate-700">Выбрать документ с устройства</p>
+                      <p className="text-[10px] text-slate-400">PDF, JPG, PNG, DICOM (допустимого размера)</p>
+                    </div>
+                  )}
+                </label>
+              )}
+              {/* Невидимый инпут для валидации HTML5 формы */}
+              <input type="hidden" name="file_url" value={formData.file_url} required />
             </div>
+
 
             <button
               type="submit" disabled={isSaving}

@@ -27,6 +27,7 @@ import { PatientSymptomsPage } from './pages/PatientSymptomsPage';
 import { PatientDocumentsPage } from './pages/PatientDocumentsPage';
 import { PatientTasksPage } from './pages/PatientTasksPage';
 import { PatientPreferencesPage } from './pages/PatientPreferencesPage';
+import { GlobalSearchPage } from './pages/GlobalSearchPage';
 
 
 function App() {
@@ -108,6 +109,8 @@ function App() {
         <Route path="/doctor/patients/:patientId/ehr" element={<DoctorPatientEhrPage />} />
         <Route path="/doctor/tasks" element={<DoctorTasksPage />} />
         <Route path="/doctor/chat" element={<DoctorChatPage />} />
+
+        <Route path="/global-search" element={<GlobalSearchPage />} />
       </Route>
     </Routes>
   );
