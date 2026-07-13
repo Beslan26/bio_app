@@ -1,5 +1,9 @@
 from datetime import date, datetime
+from typing import Optional
+
 from pydantic import BaseModel, Field
+
+from medical_assistant.schemas.complaint import ClinicalComplaintResponse
 
 
 class DoctorProfileUpdateRequest(BaseModel):
@@ -46,17 +50,21 @@ class AppointmentCreateRequest(BaseModel):
 
 
 class AppointmentResponse(BaseModel):
-    """Ответ с данными календарного приема."""
+    """Ответ с данными календарного приема, обогащенный данными жалобы."""
 
     id: int
     doctor_id: int
     patient_id: int
-    complaint_id: int | None = None
     start_time: datetime
     end_time: datetime
     status: str
-    patient_priority: int | None = None
-    notes: str | None = None
+    patient_priority: Optional[int] = None
+    notes: Optional[str] = None
+
+    # Вместо ID возвращаем целый объект жалобы, адаптированный под фронтенд доктора
+    complaint: Optional[ClinicalComplaintResponse] = None
+
+    model_config = {"from_attributes": True}  # Обязательно для автоматического маппинга
 
 
 class DiagnosisCreateRequest(BaseModel):

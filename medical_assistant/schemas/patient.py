@@ -4,8 +4,8 @@ from typing import Optional
 
 
 class PatientProfileResponse(BaseModel):
-    birth_date: date
-    sex: str
+    birth_date: Optional[date] = None
+    sex: Optional[str] = None
     height_cm: Optional[int] = None
     weight_kg: Optional[float] = None
 

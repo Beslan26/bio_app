@@ -30,11 +30,12 @@ async def create_text_complaint(
 
     facts = await extract_medical_facts(data.text)
 
+    # Передаем аргументы строго по новым колонкам
     complaint = await complaints.create(
         patient_id=patient.id,
         source="text",
         raw_text=data.text,
-        extracted_facts=facts,
+        extracted_facts=facts, # Передаем список строк
     )
 
     return complaint

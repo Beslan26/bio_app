@@ -19,6 +19,7 @@ router = APIRouter(prefix="/patient", tags=["patient"])
 # НЕ ИСПОЛЬЗОВАТЬ для Личного Кабинета самого пациента!
 # Для личного кабинета пациента используется 'patients_workspace.py' (/patient/workspace).
 
+
 @router.get("/profile", response_model=PatientProfileResponse)
 async def get_patient_profile(
     user=Depends(require_roles(UserRole.patient)),

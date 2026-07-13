@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { PatientAnalyticsCharts } from '../components/PatientAnalyticsCharts';
 import {
   getPatientWorkspaceProfile,
   updatePatientWorkspaceProfile,
   getDiagnosesTimeline,
   getHealthSnapshot,
-  getBasePatientProfile,       // Наш новый GET из patients.py
-  updateBasePatientProfile,    // Наш новый PUT из patients.py
+  getBasePatientProfile,
+  updateBasePatientProfile,
   PatientProfileResponse,
   PatientProfileUpdateRequest,
   PatientTimelineDiagnosis,
@@ -92,9 +93,12 @@ export const PatientDashboardPage: React.FC = () => {
     setIsSaving(true);
     setSaveMessage(null);
 
+    const cleanHeight = editForm.height_cm?.trim() ? Number(editForm.height_cm) : null;
+    const cleanWeight = editForm.weight_kg?.trim() ? Number(editForm.weight_kg) : null;
+
     try {
-      // Одновременно шлем PATCH в воркспейс и PUT в базовый профиль
       const [updatedWorkspace, updatedBase] = await Promise.all([
+        // Воркспейс обновляет текстовую медицинскую анкету
         updatePatientWorkspaceProfile({
           full_name: editForm.full_name?.trim() || null,
           birth_date: editForm.birth_date || null,
@@ -103,16 +107,21 @@ export const PatientDashboardPage: React.FC = () => {
           contact_details: editForm.contact_details?.trim() || null,
           emergency_contact: editForm.emergency_contact?.trim() || null,
         }),
+        // Базовый профиль принимает физические параметры аккаунта
         updateBasePatientProfile({
           birth_date: editForm.birth_date || undefined,
           sex: editForm.gender || undefined,
-          height_cm: editForm.height_cm ? Number(editForm.height_cm) : null,
-          weight_kg: editForm.weight_kg ? Number(editForm.weight_kg) : null,
+          height_cm: cleanHeight, // Возвращаем на законное место!
+          weight_kg: cleanWeight, // Возвращаем на законное место!
         })
       ]);
 
       setProfile(updatedWorkspace);
       setBaseProfile(updatedBase);
+
+      // Перезапрашиваем данные для обновления всех карточек на экране
+      await loadDashboardData();
+
       setSaveMessage({ type: 'success', text: 'Все медицинские и личные данные успешно сохранены!' });
       setIsEditing(false);
     } catch (err: any) {

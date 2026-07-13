@@ -27,6 +27,8 @@ class Patient(Base, TimestampMixin):
     blood_type: Mapped[str | None] = mapped_column(String)
     contact_details: Mapped[str | None] = mapped_column(String)
     emergency_contact: Mapped[str | None] = mapped_column(String)
+    height_cm: Mapped[int | None] = mapped_column(nullable=True)
+    weight_kg: Mapped[float | None] = mapped_column(nullable=True)
 
     user = relationship("User", back_populates="patient")
     complaints = relationship("Complaint", back_populates="patient")

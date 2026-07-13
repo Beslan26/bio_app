@@ -11,6 +11,7 @@ from medical_assistant.models.user.doctors import DoctorVerificationStatus
 from medical_assistant.models.user.user import UserRole
 from medical_assistant.repositories.audit_log import AuditLogRepository
 from medical_assistant.repositories.doctor_workspace import DoctorWorkspaceRepository
+from medical_assistant.schemas.complaint import ClinicalComplaintResponse
 from medical_assistant.schemas.doctor_workspace import (
     AppointmentCreateRequest,
     AppointmentResponse,
@@ -107,7 +108,7 @@ async def list_active_patients(
     ]
 
 
-@router.get("/complaints/inbox")
+@router.get("/complaints/inbox", response_model=list[ClinicalComplaintResponse]) # <-- Добавили схему
 async def complaints_inbox(
     doctor_context=Depends(_get_verified_doctor),
     workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
@@ -118,18 +119,20 @@ async def complaints_inbox(
     return items
 
 
+
 @router.post("/appointments", response_model=AppointmentResponse)
 async def create_appointment(
-    payload: AppointmentCreateRequest,
-    doctor_context=Depends(_get_verified_doctor),
-    workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
-    audit_logs: AuditLogRepository = Depends(get_audit_log_repo),
+        payload: AppointmentCreateRequest,
+        doctor_context=Depends(_get_verified_doctor),
+        workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
+        audit_logs: AuditLogRepository = Depends(get_audit_log_repo),
 ):
     """Создает запись приема в календаре врача."""
     doctor, current_user = doctor_context
     if payload.end_time <= payload.start_time:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid appointment range")
+        raise HTTPException(status_code=400, detail="Invalid appointment range")
 
+    # Репозиторий создаст прием
     item = await workspace.create_appointment(
         doctor_id=doctor.id,
         patient_id=payload.patient_id,
@@ -140,6 +143,7 @@ async def create_appointment(
         patient_priority=payload.patient_priority,
         notes=payload.notes,
     )
+
     await log_action(
         audit_logs,
         user_id=current_user.id,
@@ -147,41 +151,22 @@ async def create_appointment(
         entity_type="appointment",
         entity_id=str(item.id),
     )
-    return AppointmentResponse(
-        id=item.id,
-        doctor_id=item.doctor_id,
-        patient_id=item.patient_id,
-        complaint_id=item.complaint_id,
-        start_time=item.start_time,
-        end_time=item.end_time,
-        status=item.status.value,
-        patient_priority=item.patient_priority,
-        notes=item.notes,
-    )
+
+    # Просто возвращаем объект. FastAPI сам превратит его в схему
+    return item
 
 
 @router.get("/appointments", response_model=list[AppointmentResponse])
 async def list_appointments(
-    doctor_context=Depends(_get_verified_doctor),
-    workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
+        doctor_context=Depends(_get_verified_doctor),
+        workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
 ):
     """Возвращает календарь приемов врача с ближайших дат."""
     doctor, _ = doctor_context
     items = await workspace.list_appointments(doctor.id)
-    return [
-        AppointmentResponse(
-            id=item.id,
-            doctor_id=item.doctor_id,
-            patient_id=item.patient_id,
-            complaint_id=item.complaint_id,
-            start_time=item.start_time,
-            end_time=item.end_time,
-            status=item.status.value,
-            patient_priority=item.patient_priority,
-            notes=item.notes,
-        )
-        for item in items
-    ]
+
+    # Просто возвращаем список объектов. Ручной цикл for больше не нужен
+    return items
 
 
 @router.post("/diagnoses", response_model=DiagnosisResponse)

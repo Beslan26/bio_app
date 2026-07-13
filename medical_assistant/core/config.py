@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # postgres_password: str
     # postgres_host: str
     # postgres_port: int
+
     database_url_async: str    # для работы с записями бд
     database_url_sync: str     # для Alembic
 

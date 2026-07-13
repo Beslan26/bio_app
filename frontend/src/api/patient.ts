@@ -257,15 +257,15 @@ export const requestDeactivation = async (): Promise<{ message: string }> => {
 
 // --- СИСТЕМНЫЙ CRUD ДЛЯ ВРАЧЕЙ И АДМИНИСТРАТОРОВ (из patients.py) ---
 
-// 1. Интерфейс ответа строго по базовому PatientProfileResponse
+// Точный контракт ответа, соответствующий Pydantic-модели PatientProfileResponse
 export interface BasePatientProfileResponse {
-  birth_date: string; // YYYY-MM-DD
-  sex: string;
+  birth_date: string | null;
+  sex: string | null;
   height_cm: number | null;
   weight_kg: number | null;
 }
 
-// 2. Интерфейс запроса строго по PatientProfileUpdate
+// Контракт запроса, соответствующий Pydantic-модели PatientProfileUpdate
 export interface BasePatientProfileUpdate {
   birth_date?: string | null;
   sex?: string | null;
@@ -273,17 +273,24 @@ export interface BasePatientProfileUpdate {
   weight_kg?: number | null;
 }
 
-// 3. GET запрос получения базового физического профиля
+/**
+ * 3. GET запрос получения базового физического профиля
+ * Относительный путь БЕЗ /api/v1 на старте
+ */
 export const getBasePatientProfile = async (): Promise<BasePatientProfileResponse> => {
-  const response = await apiClient.get<BasePatientProfileResponse>('/api/patient/profile');
+  const response = await apiClient.get<BasePatientProfileResponse>('/api/v1/patient/profile');
   return response.data;
 };
 
-// 4. PUT запрос на обновление базового физического профиля
+/**
+ * 4. PUT запрос на обновление базового физического профиля
+ * Рост и вес передаются сюда, как требует бэкенд
+ */
 export const updateBasePatientProfile = async (payload: BasePatientProfileUpdate): Promise<BasePatientProfileResponse> => {
-  const response = await apiClient.put<BasePatientProfileResponse>('/api/patient/profile', payload);
+  const response = await apiClient.put<BasePatientProfileResponse>('api/v1/patient/profile', payload);
   return response.data;
-}; // <-- Убедитесь, что эта функция называется именно updateBasePatientProfile и перед ней стоит export
+};
+
 
 
 // --- МОДУЛЬ ЖАЛОБ И СИМПТОМОВ (из patient_complaints.py) ---

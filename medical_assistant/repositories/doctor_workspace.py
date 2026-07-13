@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from medical_assistant.models.communication.chat import ChatMessage, CommunicationThread
 from medical_assistant.models.medical.appointments import Appointment
@@ -53,25 +54,37 @@ class DoctorWorkspaceRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def list_inbox_complaints(self, limit: int = 50) -> list[Complaint]:
-        """Возвращает очередь новых жалоб пациентов для первичного разбора."""
-        stmt = select(Complaint).order_by(Complaint.created_at.desc()).limit(limit)
-        result = await self.session.execute(stmt)
+    async def list_inbox_complaints(self) -> list[Complaint]:
+        """Возвращает список всех жалоб с подгруженными данными пациентов."""
+        result = await self.session.execute(
+            select(Complaint)
+            .options(joinedload(Complaint.patient))  # <-- Подгружаем пациента, чтобы Pydantic собрал имя
+            .order_by(Complaint.created_at.desc())
+        )
         return list(result.scalars().all())
 
     async def create_appointment(self, **data) -> Appointment:
-        """Создает прием в календаре врача."""
+        """Создает прием в календаре врача и подгружает данные жалобы."""
         item = Appointment(**data)
         self.session.add(item)
         await self.session.commit()
-        await self.session.refresh(item)
-        return item
+
+        # Вместо обычного refresh делаем select с подгрузкой связи complaint
+        # чтобы роутер сразу получил весь объект целиком
+        query = (
+            select(Appointment)
+            .where(Appointment.id == item.id)
+            .options(joinedload(Appointment.complaint))
+        )
+        result = await self.session.execute(query)
+        return result.scalar_one()
 
     async def list_appointments(self, doctor_id: int) -> list[Appointment]:
-        """Возвращает список приемов врача, начиная с ближайших."""
+        """Возвращает список приемов врача со всеми данными жалоб."""
         result = await self.session.execute(
             select(Appointment)
             .where(Appointment.doctor_id == doctor_id)
+            .options(joinedload(Appointment.complaint))
             .order_by(Appointment.start_time.asc())
         )
         return list(result.scalars().all())
