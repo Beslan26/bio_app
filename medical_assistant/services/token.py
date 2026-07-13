@@ -6,7 +6,7 @@ SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = settings.jwt_algorithm
 
 
-def create_access_token(data: dict, minutes: int = 15) -> str:
+def create_access_token(data: dict, minutes: int = 1440) -> str:
     payload = data.copy()
     payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=minutes)
     payload["token_type"] = "access"
