@@ -90,17 +90,19 @@ async def update_profile(
 
 @router.get("/patients/active", response_model=list[DoctorPatientItem])
 async def list_active_patients(
-    q: str | None = Query(default=None),
-    doctor_context=Depends(_get_verified_doctor),
-    workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
+        q: str | None = Query(default=None),
+        doctor_context=Depends(_get_verified_doctor),
+        workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
 ):
-    """Возвращает активных пациентов врача или результаты поиска по email."""
+    """Возвращает активных пациентов врача с ФИО напрямую из модели Patient."""
     doctor, _ = doctor_context
     patients = await (workspace.list_patients_by_query(q) if q else workspace.list_active_patients(doctor.id))
+
     return [
         DoctorPatientItem(
             id=item.id,
             user_id=item.user_id,
+            full_name=item.full_name,  # <-- Просто берем готовое ФИО из модели Patient
             birth_date=item.birth_date,
             sex=item.sex.value if item.sex else None,
         )

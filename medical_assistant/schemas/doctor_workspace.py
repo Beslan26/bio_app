@@ -34,8 +34,11 @@ class DoctorPatientItem(BaseModel):
 
     id: int
     user_id: int
+    full_name: str | None = None  # Теперь это простое поле данных
     birth_date: date | None = None
     sex: str | None = None
+
+    model_config = {"from_attributes": True}
 
 
 class AppointmentCreateRequest(BaseModel):

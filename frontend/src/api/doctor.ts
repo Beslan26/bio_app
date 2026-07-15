@@ -40,6 +40,7 @@ export interface DoctorPatientItem {
   user_id: number;
   birth_date: string | null; // Даты из Pydantic прилетают строками (ISO)
   sex: string | null;
+  full_name: string | null;
 }
 
 // 2. Функция получения списка активных пациентов с поддержкой поиска

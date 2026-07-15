@@ -82,6 +82,7 @@ export const DoctorPatientsPage: React.FC = () => {
             <thead className="bg-slate-50 font-medium text-slate-600">
               <tr>
                 <th className="px-6 py-3.5">ID Пациента</th>
+                <th className="px-6 py-3.5">ФИО Пациента</th>
                 <th className="px-6 py-3.5">User ID</th>
                 <th className="px-6 py-3.5">Пол</th>
                 <th className="px-6 py-3.5">Дата рождения</th>
@@ -92,7 +93,7 @@ export const DoctorPatientsPage: React.FC = () => {
             <tbody className="divide-y divide-slate-200 text-slate-700">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
                     <div className="flex justify-center items-center gap-2">
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
                       <span>Поиск пациентов...</span>
@@ -101,7 +102,7 @@ export const DoctorPatientsPage: React.FC = () => {
                 </tr>
               ) : patients.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
                     Пациенты не найдены.
                   </td>
                 </tr>
@@ -109,6 +110,10 @@ export const DoctorPatientsPage: React.FC = () => {
                 patients.map((patient) => (
                   <tr key={patient.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">{patient.id}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">
+                      {patient.full_name || 'Не указано'}
+                    </td>
+
                     <td className="px-6 py-4 font-mono text-xs text-slate-500">{patient.user_id}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
