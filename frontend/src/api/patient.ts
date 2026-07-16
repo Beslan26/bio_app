@@ -152,15 +152,6 @@ export const getDiagnosesTimeline = async (): Promise<PatientTimelineDiagnosis[]
 };
 
 
-// 1. Интерфейс активной задачи пациента строго по TaskItemResponse
-export interface PatientTaskItem {
-  id: number;
-  title: string;
-  description: string;
-  start_date: string; // YYYY-MM-DD
-  end_date: string;   // YYYY-MM-DD
-}
-
 // 2. Интерфейс ответа записи выполнения строго по TaskEntryResponse
 export interface TaskEntryResponse {
   id: number;
@@ -170,6 +161,19 @@ export interface TaskEntryResponse {
   timestamp: string;      // ISO datetime
   last_edited_at: string | null; // ISO datetime
 }
+
+// 1. Интерфейс активной задачи пациента (теперь включает историю замеров)
+export interface PatientTaskItem {
+  id: number;
+  title: string;
+  description: string;
+  start_date: string; // YYYY-MM-DD
+  end_date: string;   // YYYY-MM-DD
+  
+  // СВЯЗЫВАЕМ ТИПЫ: говорим, что внутри задачи лежит массив сегодняшних замеров
+  entries: TaskEntryResponse[]; 
+}
+
 
 // 3. Получить активные задачи пациента на сегодня
 export const listActivePatientTasks = async (): Promise<PatientTaskItem[]> => {
@@ -188,6 +192,12 @@ export const updateTaskEntry = async (entryId: number, payload: { value: string;
   const response = await apiClient.patch<TaskEntryResponse>(`/api/v1/patient/workspace/tasks/entries/${entryId}`, payload);
   return response.data;
 };
+
+export const listTodayPatientEntries = async (): Promise<TaskEntryResponse[]> => {
+  const response = await apiClient.get<TaskEntryResponse[]>('/api/v1/patient/workspace/tasks/entries/today');
+  return response.data;
+};
+
 
 
 // 1. Интерфейс ответа для снимка здоровья строго по HealthSnapshotResponse

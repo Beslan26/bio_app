@@ -20,6 +20,7 @@ from medical_assistant.schemas.doctor_workspace import (
     DoctorPatientItem,
     DoctorProfileResponse,
     DoctorProfileUpdateRequest,
+    DoctorTaskResponse,
     MessageResponse,
     SendMessageRequest,
     TaskCreateRequest,
@@ -260,7 +261,7 @@ async def create_task(
     )
 
 
-@router.get("/tasks", response_model=list[TaskResponse])
+@router.get("/tasks", response_model=list[DoctorTaskResponse]) 
 async def list_tasks(
     doctor_context=Depends(_get_verified_doctor),
     workspace: DoctorWorkspaceRepository = Depends(get_doctor_workspace_repo),
@@ -268,18 +269,10 @@ async def list_tasks(
     """Возвращает список задач-трекеров, созданных текущим врачом."""
     doctor, _ = doctor_context
     items = await workspace.list_tasks(doctor.id)
-    return [
-        TaskResponse(
-            id=item.id,
-            doctor_id=item.doctor_id,
-            patient_id=item.patient_id,
-            title=item.title,
-            description=item.description,
-            start_date=item.start_date,
-            end_date=item.end_date,
-        )
-        for item in items
-    ]
+    
+    # Включаем авто-маппинг FastAPI. Больше никакого ручного цикла!
+    return items 
+
 
 
 @router.post("/messages", response_model=MessageResponse)

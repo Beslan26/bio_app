@@ -150,7 +150,7 @@ export const DoctorTasksPage: React.FC = () => {
               <label className="block text-xs font-semibold text-slate-600 mb-1">Инструкции и описание планов *</label>
               <textarea
                 name="description" rows={4} required
-                placeholder="Замерять АД утром и вечером перед приемом лекарств. Результаты заносить в приложение..."
+                placeholder="Замерять АД утром и вечером перед приемом лекарств. Результаты заносить в application..."
                 value={formData.description} onChange={handleInputChange}
                 className="w-full text-sm rounded-lg border border-slate-300 px-3 py-1.5 bg-white outline-none focus:border-teal-500"
               />
@@ -158,7 +158,7 @@ export const DoctorTasksPage: React.FC = () => {
 
             <button
               type="submit" disabled={isSaving}
-              className="w-full py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-xl transition flex items-center justify-center gap-2"
+              className="w-full py-2 px-4 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-xl transition flex items-center justify-center gap-2 h-10 shadow-sm"
             >
               {isSaving && <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />}
               Выдать предписание
@@ -178,12 +178,12 @@ export const DoctorTasksPage: React.FC = () => {
             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
               {tasks.map((task) => {
                 const isExpired = new Date(task.end_date).getTime() < new Date().setHours(0,0,0,0);
-                const isOpen = activeTaskId === task.id; // Проверяем, раскрыта ли текущая задача
+                const isOpen = activeTaskId === task.id;
 
                 return (
                   <div
                     key={task.id}
-                    onClick={() => setActiveTaskId(isOpen ? null : task.id)} // Клик открывает/закрывает трекер
+                    onClick={() => setActiveTaskId(isOpen ? null : task.id)}
                     className={`p-4 rounded-xl border transition-all duration-200 flex flex-col gap-2 cursor-pointer ${
                       isOpen
                         ? 'border-teal-500 bg-teal-50/10 shadow-sm'
@@ -205,7 +205,6 @@ export const DoctorTasksPage: React.FC = () => {
                         }`}>
                           {isExpired ? 'Завершен' : 'Активен'}
                         </span>
-                        {/* Индикатор раскрытия (стрелочка) */}
                         <svg
                           className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-teal-600' : ''}`}
                           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -214,8 +213,7 @@ export const DoctorTasksPage: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-
-                    <p className="text-xs text-slate-600 bg-white border border-slate-100 p-3 rounded-lg leading-relaxed whitespace-pre-line(60)">
+                    <p className="text-xs text-slate-600 bg-white border border-slate-100 p-3 rounded-lg leading-relaxed whitespace-pre-line">
                       {task.description}
                     </p>
 

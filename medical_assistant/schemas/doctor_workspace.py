@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
@@ -115,6 +115,34 @@ class TaskResponse(BaseModel):
     description: str
     start_date: date
     end_date: date
+
+
+class DoctorTaskEntryResponse(BaseModel):
+    """Схема одного показателя пациента для лк доктора."""
+    id: int
+    task_id: int
+    value: str
+    patient_comment: Optional[str] = None
+    timestamp: datetime
+    last_edited_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+class DoctorTaskResponse(BaseModel):
+    """Схема задачи, обогащенная списком показателей для лк доктора."""
+    id: int
+    doctor_id: int
+    patient_id: int
+    title: str
+    description: str
+    start_date: date
+    end_date: date
+    
+    # Вкладываем массив показателей внутрь задачи
+    entries: List[DoctorTaskEntryResponse] = []
+
+    model_config = {"from_attributes": True}
 
 
 class SendMessageRequest(BaseModel):

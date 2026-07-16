@@ -126,6 +126,27 @@ class PatientWorkspaceRepository:
         await self.session.commit()
         await self.session.refresh(entry)
         return entry
+    
+    async def list_today_entries_by_patient(self, patient_id: int) -> list[TaskEntry]:
+        """Возвращает список всех внесенных показателей пациента за сегодняшний день (UTC)."""
+        # 1. Определяем временные границы сегодняшнего дня в UTC
+        now_utc = datetime.now(timezone.utc)
+        today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_utc.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # 2. Делаем выборку записей через связь с задачами пациента
+        result = await self.session.execute(
+            select(TaskEntry)
+            .join(Task, TaskEntry.task_id == Task.id)
+            .where(
+                Task.patient_id == patient_id,
+                TaskEntry.timestamp >= today_start,
+                TaskEntry.timestamp <= today_end
+            )
+            .order_by(TaskEntry.timestamp.desc())  # Сначала самые свежие
+        )
+        return list(result.scalars().all())
+
 
     async def create_or_replace_snapshot(self, patient_id: int, key_metrics_json: dict) -> HealthSnapshot:
         """Создает новый снимок метрик пациента для быстрого дашборда."""

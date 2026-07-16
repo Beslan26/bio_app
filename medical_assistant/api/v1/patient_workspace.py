@@ -338,6 +338,29 @@ async def update_task_entry(
     )
 
 
+@router.get("/tasks/entries/today", response_model=list[TaskEntryResponse])
+async def get_today_entries(
+    ctx=Depends(_get_patient_context),
+    workspace: PatientWorkspaceRepository = Depends(get_patient_workspace_repo),
+):
+    """Возвращает список всех внесенных показателей пациента за сегодня."""
+    _, patient = ctx
+    # В репозитории должен быть метод, который достает записи из БД
+    items = await workspace.list_today_entries_by_patient(patient.id) 
+    return [
+        TaskEntryResponse(
+            id=item.id,
+            task_id=item.task_id,
+            value=item.value,
+            patient_comment=item.patient_comment,
+            timestamp=item.timestamp,
+            last_edited_at=item.last_edited_at,
+        )
+        for item in items
+    ]
+
+
+
 @router.get("/health/snapshot", response_model=HealthSnapshotResponse | None)
 async def get_health_snapshot(
     ctx=Depends(_get_patient_context),

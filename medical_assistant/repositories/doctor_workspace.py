@@ -113,13 +113,16 @@ class DoctorWorkspaceRepository:
         await self.session.commit()
         await self.session.refresh(task)
         return task
-
+ 
     async def list_tasks(self, doctor_id: int) -> list[Task]:
-        """Возвращает задачи, созданные конкретным врачом."""
+        """Возвращает список задач врача со всеми замерами пациента."""
         result = await self.session.execute(
-            select(Task).where(Task.doctor_id == doctor_id).order_by(Task.created_at.desc())
+            select(Task)
+            .where(Task.doctor_id == doctor_id)
+            .options(joinedload(Task.entries)) 
+            .order_by(Task.created_at.desc())
         )
-        return list(result.scalars().all())
+        return list(result.scalars().unique().all())
 
     async def get_or_create_thread(self, doctor_id: int, patient_id: int) -> CommunicationThread:
         """Находит чат врача с пациентом или создает новый диалог."""
