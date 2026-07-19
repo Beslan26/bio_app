@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listDiagnoses, createDiagnosis, DiagnosisResponse, DiagnosisCreateRequest } from '../api/doctor';
+import { PatientAnalyticsCharts } from '@/components/PatientAnalyticsCharts';
 
 export const DoctorPatientEhrPage: React.FC = () => {
   // Извлекаем patient_id из параметров URL строки
