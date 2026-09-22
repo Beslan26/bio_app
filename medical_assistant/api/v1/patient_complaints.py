@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 
 from medical_assistant.dependencies.repos import get_patient_repo, get_complaint_repo
+from medical_assistant.dependencies.infrastructure import get_ai_service
 from medical_assistant.schemas.complaint import (
     ComplaintCreateText,
     ComplaintResponse,
@@ -10,6 +11,7 @@ from medical_assistant.repositories.patient import PatientRepository
 from medical_assistant.dependencies.auth import require_roles
 from medical_assistant.models.user.user import UserRole
 from medical_assistant.services.complaint_ai import extract_medical_facts
+from medical_assistant.services.infrastructure.ai_service import AIService
 
 router = APIRouter(
     prefix="/patient/complaints",
@@ -47,16 +49,20 @@ async def create_voice_complaint(
     user=Depends(require_roles(UserRole.patient)),
     patients: PatientRepository = Depends(get_patient_repo),
     complaints: ComplaintRepository = Depends(get_complaint_repo),
+    ai: AIService = Depends(get_ai_service)
 ):
     patient = await patients.get_by_user_id(user.id)
     if not patient:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
+    transcribed_text = await ai.transcribe_audio(file) # вот здесь асинхронность лишняя - потому что далее будут идти тяжелые вычисления, которые заблокируют весь процесс
+
     # 1️⃣ Чтение аудио
     audio_bytes = await file.read()
+    print(f"Received audio file: {file.filename}, size: {len(audio_bytes)} bytes")
 
     # 2️⃣ Speech-to-text (заглушка)
-    transcribed_text = "Пациент жалуется на слабость и плохой сон"
+    # transcribed_text = "Пациент жалуется на слабость и плохой сон"
 
     # 3️⃣ Извлечение фактов
     facts = await extract_medical_facts(transcribed_text)

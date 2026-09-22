@@ -2,7 +2,11 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
+
+from sqlalchemy import create_engine, pool 
 from alembic import context
 
 from medical_assistant.database.base import Base
@@ -40,8 +44,7 @@ from medical_assistant.models.user.licenses import License
 from medical_assistant.models.user.patients import Sex, Patient
 from medical_assistant.models.user.notifications import Notification
 from medical_assistant.models.user.specializations import Specialization
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from medical_assistant.models.nutrition.food import FoodProducts, MealIngredients, Meals
 
 config = context.config
 if config.config_file_name is not None:
@@ -66,9 +69,8 @@ def run_migrations_offline():
 
 def run_migrations_online():
     """Run migrations against actual DB"""
-    connectable = engine_from_config(
-        {"sqlalchemy.url": settings.database_url_sync},
-        prefix="sqlalchemy.",
+    connectable = create_engine(
+        settings.database_url_sync,
         poolclass=pool.NullPool,
     )
 
